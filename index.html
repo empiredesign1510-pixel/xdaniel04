@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Empiredesign04</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --surface: #1c1c1e;
+            --surface-highlight: #2c2c2e;
+            --text: #ffffff;
+            --text-muted: #8e8e93;
+            --accent: #0a84ff;
+            --radius: 12px;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 100px;
+        }
+
+        /* BANNER AREA */
+        .banner-area {
+            position: relative;
+            margin-bottom: 60px;
+        }
+
+        .banner-img {
+            width: 100%;
+            height: 180px;
+            /* Ganti URL di bawah dengan foto bannermu sendiri */
+            background-image: url('banner.jpg'); 
+            background-size: cover;
+            background-position: center;
+        }
+
+        .banner-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, transparent 50%, var(--bg) 100%);
+        }
+
+        .profile-wrapper {
+            position: absolute;
+            bottom: -50px;
+            left: 20px;
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .profile-pic-large {
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--bg);
+            background: #333;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        
+        /* GANTI FOTO PROFIL DI SINI (di dalam tag IMG di HTML bawah) */
+        .profile-pic-large img { width: 100%; height: 100%; object-fit: cover; }
+
+        .author-info { padding-bottom: 8px; }
+        .author-name { font-size: 24px; font-weight: 800; line-height: 1.1; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .author-role { font-size: 14px; color: rgba(255,255,255,0.8); font-weight: 500; }
+
+        .content-area { padding: 0 20px; }
+
+        /* SEARCH BAR */
+        .search-wrapper {
+            position: sticky; top: 10px; z-index: 100;
+            margin: 20px 0 24px;
+        }
+        .search-bar {
+            width: 100%;
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .search-bar:focus { border-color: var(--accent); background: #2c2c2e; }
+
+        /* APP LIST */
+        .app-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+        
+        .app-item {
+            display: flex; align-items: center; gap: 16px;
+            background: var(--surface);
+            padding: 16px;
+            border-radius: var(--radius);
+            transition: transform 0.1s;
+        }
+        .app-item:active { background: var(--surface-highlight); transform: scale(0.98); }
+
+        /* LOGIKA ICON BARU (Mendukung Gambar) */
+        .app-icon {
+            width: 60px; height: 60px; /* Sedikit diperbesar */
+            border-radius: 14px;
+            background: #333; /* Placeholder saat loading */
+            overflow: hidden; /* Supaya gambar ngikutin radius */
+            flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .app-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Gambar akan mengisi penuh kotak tanpa gepeng */
+            display: block;
+        }
+
+        .app-details { flex-grow: 1; overflow: hidden; }
+        .app-name { font-size: 17px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+        .app-meta { font-size: 13px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
+        .tag { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+
+        /* BUTTONS */
+        .action-btn {
+            background: rgba(255,255,255,0.1); color: var(--accent);
+            border: none; padding: 8px 20px; border-radius: 20px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            min-width: 75px; transition: all 0.2s;
+        }
+        .action-btn.open-state { background: var(--accent); color: white; }
+        
+        .loading {
+            width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%; border-top-color: var(--accent);
+            animation: spin 0.8s linear infinite; margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: #333; color: white; padding: 12px 24px; border-radius: 30px;
+            font-size: 14px; opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: center; gap: 10px; white-space: nowrap;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* Mengatur pembungkus agar berjejer ke bawah dan sejajar kiri */
+.author-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.social-links {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px; /* Memberi jarak dari tulisan di atasnya */
+    align-items: center;
+}
+
+.social-links a {
+    display: flex;
+    transition: all 0.3s ease;
+}
+
+/* Mengubah ikon menjadi Hitam Putih (Elegant) */
+.social-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    filter: grayscale(100%); /* Membuat ikon jadi hitam putih */
+    opacity: 0.7; /* Membuat ikon sedikit redup agar lebih minimalis */
+    transition: all 0.3s ease;
+}
+
+/* Efek saat ikon disentuh/hover */
+.social-links a:hover .social-icon {
+    filter: grayscale(0%); /* Warna asli muncul saat ditekan */
+    opacity: 1;
+    transform: translateY(-2px); /* Sedikit efek melompat ke atas */
+}
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="banner-area">
+        <div class="banner-img"></div> <div class="banner-overlay"></div> <div class="profile-wrapper">
+            <div class="profile-pic-large">
+                <img src="profil.jpg" alt="User">
+            </div>
+            
+           <div class="author-info">
+    <div class="author-name">xdaniel04</div>
+    <div class="author-role">Graphic Designer & App Developer</div>
+    
+    <div class="social-links">
+        <a href="https://instagram.com/xdaniel04" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" class="social-icon" alt="Instagram">
+        </a>
+        <a href="https://t.me/xdaniel04" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" class="social-icon" alt="Telegram">
+        </a>
+        <a href="https://wa.me/6285894956788" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="social-icon" alt="WhatsApp">
+        </a>
+    </div>
+</div>
+
+            
+        </div>
+    </div>
+
+
+
+    <div class="content-area">
+        <div class="search-wrapper">
+            <input type="text" id="search" class="search-bar" placeholder="Cari karya saya...">
+        </div>
+
+        <div id="list" class="app-list"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    /* PANDUAN MENGGANTI ICON:
+       1. Jika file gambar ada di HP (satu folder dengan index.html), 
+          cukup tulis nama filenya. Contoh: 'marketx.png'
+       2. Jika pakai link internet, tulis link lengkapnya.
+    */
+
+    const database = [
+        {
+            id: 'KitaTabung',
+            name: 'Kita Tabung',
+            desc: 'Aplikasi Catat Keuangan Kamu',
+            version: 'v2',
+            category: 'Finance',
+            // Ganti link di bawah ini dengan gambar icon kamu sendiri
+            icon: 'app1.png', 
+            link: 'https://kitatabungv2.vercel.app/' 
+        },
+        {
+            id: 'KilatBill',
+            name: 'Kilat Bill',
+            desc: 'Website Untuk Membuat Invoice / Nota',
+            version: 'v1',
+            category: 'Invoice',
+            icon: 'app2.png',
+            link: 'https://kilatbill.netlify.app/'
+        },
+        {
+            id: 'GentaAi',
+            name: 'Genta Ai',
+            desc: 'Ai Pintar Untuk Assiten Pribadi Kamu',
+            version: 'v1',
+            category: 'Chatbot',
+            icon: 'app3.jpg',
+            link: 'https://genta-ai-update.vercel.app/'
+        },
+        {
+            id: 'Tikflow',
+            name: 'TikFlow',
+            desc: 'Tiktok Downloader',
+            version: 'v1',
+            category: 'Video downloader',
+            icon: 'app4.jpg',
+            link: 'https://tikflow-coral.vercel.app/'
+        },
+        {
+            id: 'Coming Soon',
+            name: 'Coming Soon',
+            desc: '',
+            version: '',
+            category: '',
+            icon: '',
+            link: '#'
+        },
+        
+    ];
+
+    const listEl = document.getElementById('list');
+    const searchInput = document.getElementById('search');
+
+    function render(items) {
+        listEl.innerHTML = '';
+        items.forEach(app => {
+            const isInstalled = localStorage.getItem(`app_${app.id}`) === 'true';
+            
+            const div = document.createElement('div');
+            div.className = 'app-item';
+            div.innerHTML = `
+                <div class="app-icon">
+                    <img src="${app.icon}" alt="${app.name}" onerror="this.src='https://via.placeholder.com/60'">
+                </div>
+                <div class="app-details">
+                    <div class="app-name">${app.name}</div>
+                    <div class="app-meta">
+                        <span class="tag">${app.category}</span>
+                        <span>${app.version}</span>
+                    </div>
+                </div>
+                <button class="action-btn ${isInstalled ? 'open-state' : ''}" 
+                        onclick="handleAction(this, '${app.id}', '${app.link}')">
+                    ${isInstalled ? 'BUKA' : 'GET'}
+                </button>
+            `;
+            listEl.appendChild(div);
+        });
+    }
+
+    // Logic Button & Search (Tidak Berubah)
+    function handleAction(btn, id, link) {
+        if (btn.classList.contains('open-state')) {
+            showToast(`Membuka ${id}...`);
+            setTimeout(() => window.location.href = link, 800);
+        } else {
+            btn.innerHTML = '<div class="loading"></div>';
+            btn.style.pointerEvents = 'none';
+            setTimeout(() => {
+                btn.className = 'action-btn open-state';
+                btn.innerText = 'BUKA';
+                btn.style.pointerEvents = 'auto';
+                localStorage.setItem(`app_${id}`, 'true');
+            }, 1500);
+        }
+    }
+
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        render(database.filter(app => app.name.toLowerCase().includes(term)));
+    });
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerHTML = `<span style="color: #4ade80">✓</span> <span>${msg}</span>`;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    render(database);
+</script>
+
+</body>
+</html>
